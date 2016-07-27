@@ -10,7 +10,7 @@
     (if (nil? http-server)
       (assoc self
              :http-server
-             (http/start-server (fn [_] (core/stream))
+             (http/start-server (fn [_] (core/hystrix-stream))
                                 {:port (get-in config
                                                [:hystrix-event-stream :http-port]
                                                8080)}))

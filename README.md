@@ -1,6 +1,6 @@
 # hystrix-event-stream-clj
 
-[![Build Status](https://travis-ci.org/josephwilk/hystrix-event-stream-clj.png?branch=master)](https://travis-ci.org/josephwilk/hystrix-event-stream-clj)
+[![Build Status](https://travis-ci.org/unbounce/hystrix-event-stream-clj.png?branch=master)](https://travis-ci.org/unbounce/hystrix-event-stream-clj)
 
 Easy way to setup a Hystrix (https://github.com/Netflix/Hystrix) event stream without having to use servlets.
 
@@ -8,37 +8,42 @@ Easy way to setup a Hystrix (https://github.com/Netflix/Hystrix) event stream wi
 
 Add to your `project.clj`
 
+```
+:dependencies [ ;; ..
+                [hystrix-event-stream-clj "0.2.0"]
+                ;; ..
+              ]
+```
+
 https://clojars.org/hystrix-event-stream-clj
 
-## Usage with Netty/Compojure
+## Usage with Aleph
 
 ```clojure
  (ns example.handler
-  (:use compojure.core)
-  (:gen-class)
-  (:require [compojure.handler :as handler]
-            [compojure.route :as route]
-            [aleph.http :refer [start-http-server wrap-ring-handler]]
+  (:require [aleph.server :as http]
             [com.netflix.hystrix.core :refer [defcommand]]
-            [hystrix-event-stream-clj.core :as hystrix-event]))
+            [hystrix-event-stream-clj.core :refer [hystrix-stream]))
 
 (defcommand hello
   "Safe hello!"
   []
   "Hello world!")
 
-(defroutes app-routes
-  (GET "/" [] (hello))
-  (GET "/hystrix.stream" [] (hystrix-event/stream))
-  (route/resources "/")
-  (route/not-found "Not Found"))
+(defn ring-app [req]
+  (cond
+    (= (:request-uri req) "/")
+    {:status 200 :headers {} :body (hello)}
 
-(def app
-  (handler/site app-routes))
+    (= (:request-uri req) "/hystrix.stream")
+    (hystrix-stream)
+
+    :else
+    {:status 404 :body "not found" :headers {}}))
 
 (defn -main
   [port]
-  (start-http-server (wrap-ring-handler app) {:port (Integer. port)}))
+  (http/start-server ring-app {:port (Integer. port)}))
 ```
 
 Test the event stream by curling:
@@ -56,45 +61,6 @@ data: []
 The event stream can be consumed by the Hystrix Dashboard. Giving you pretty mointoring of all circuit breakers.
 
 ![Hystrix Dashboard](https://monosnap.com/image/nOFxuqgzQ6evEeGa2iA2r4ANn.png)
-
-## How about with Jetty
-
-With Jetty you can use the Netflix Hystrix Servlet directly. Here is an example of how:
-
-```clojure
-(import [com.netflix.hystrix.contrib.metrics.eventstream HystrixMetricsStreamServlet])
-(import [org.eclipse.jetty.server Server])
-(import [org.eclipse.jetty.servlet ServletContextHandler ServletHolder])
-
-(require '[ring.util.servlet :as servlet])
-(require '[ring.adapter.jetty :as jetty])
-
-(defn run-jetty-with-hystrix [app options]
-  (let [s (#'jetty/create-server options)
-        ^QueuedThreadPool p (QueuedThreadPool. ^Integer (options :max-threads 50))]
-    (when (:daemon? options false)
-      (.setDaemon p true))
-    (doto s
-      (.setThreadPool p))
-    (when-let [configurator (:configurator options)]
-      (configurator s))
-
-    (let [hystrix-holder  (ServletHolder. HystrixMetricsStreamServlet)
-          app-holder (ServletHolder. (servlet/servlet app))
-          context (ServletContextHandler. s "/" ServletContextHandler/SESSIONS)]
-      (.addServlet context hystrix-holder "/hystrix.stream")
-      (.addServlet context app-holder "/"))
-
-    (.start s)
-    (when (:join? options true)
-      (.join s))
-    s))
-
-
-(defroutes app (GET "/hello" {:status 200 :body "Hello"})
-
-(run-jetty-with-hystrix app {:port http-port :join? false})
-```
 
 ## License
 

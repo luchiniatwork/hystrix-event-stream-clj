@@ -1,6 +1,6 @@
 (defproject hystrix-event-stream-clj "0.2.0"
   :description "Generate hystrix event streams"
-  :url "http://github.com/josephwilk/"
+  :url "http://github.com/unbounce/hystrix-event-stream-clj"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
