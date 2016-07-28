@@ -9,8 +9,13 @@
 (defn- write-metrics [stream]
   (try
     (s/put! stream (str "\nping: \n"))
-    (doall (map #(s/put! stream (str "\ndata: " (json/encode %) "\n")) (metrics/commands)))
-    (doall (map #(s/put! stream (str "\ndata: " (json/encode %) "\n")) (metrics/thread-pools)))
+
+    (doseq [command-metric (metrics/commands)]
+      (s/put! stream (str "\ndata: " (json/encode command-metric) "\n")))
+
+    (doseq [thread-pool-metric (metrics/thread-pools)]
+      (s/put! stream (str "\ndata: " (json/encode thread-pool-metric) "\n")))
+
     true
     (catch java.io.IOException e
       false)
