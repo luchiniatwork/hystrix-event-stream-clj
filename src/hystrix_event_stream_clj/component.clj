@@ -4,24 +4,31 @@
             [aleph.http.server :as http]))
 
 
-(defrecord HystrixEventStream [config http-server]
+(defrecord HystrixEventStream [config http-server metric-stream-future]
   component/Lifecycle
   (start [self]
     (if (nil? http-server)
-      (assoc self
-             :http-server
-             (http/start-server (fn [_] (core/hystrix-stream))
-                                {:port (get-in config
-                                               [:hystrix-event-stream :http-port]
-                                               8080)}))
+      (let [{:keys [request-handler metric-stream-future]}
+            (core/mk-hystrix-stream-req-handler)]
+        (assoc self
+               :http-server
+               (http/start-server request-handler
+                                  {:port (get-in config
+                                                 [:hystrix-event-stream :http-port]
+                                                 8080)})
+               :metric-stream-future
+               metric-stream-future))
       ;; else
       self))
 
   (stop [self]
     (if-not (nil? http-server)
       (do
-        (.stop http-server)
-        (dissoc self :http-server))
+        (.close http-server)
+        (future-cancel metric-stream-future)
+        (dissoc self
+                :http-server
+                :metric-stream-future))
       ;; else
       self)))
 

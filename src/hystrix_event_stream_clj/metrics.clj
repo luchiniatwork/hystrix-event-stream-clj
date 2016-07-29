@@ -70,7 +70,7 @@
      :propertyValue_circuitBreakerEnabled (-> cmd-properties .circuitBreakerEnabled .get)
 
      :propertyValue_executionIsolationStrategy (-> cmd-properties .executionIsolationStrategy .get .name)
-     :propertyValue_executionTimeoutInMilliseconds (-> cmd-properties .executionTimeoutInMilliseconds .get)
+     :propertyValue_executionIsolationThreadTimeoutInMilliseconds (-> cmd-properties .executionIsolationThreadTimeoutInMilliseconds .get)
      :propertyValue_executionIsolationThreadInterruptOnTimeout (-> cmd-properties .executionIsolationThreadInterruptOnTimeout .get)
      :propertyValue_executionIsolationThreadPoolKeyOverride (-> cmd-properties .executionIsolationThreadPoolKeyOverride .get)
      :propertyValue_executionIsolationSemaphoreMaxConcurrentRequests (-> cmd-properties .executionIsolationSemaphoreMaxConcurrentRequests .get)
