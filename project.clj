@@ -1,4 +1,4 @@
-(defproject luchiniatwork/hystrix-event-stream-clj "0.3.0-SNAPSHOT"
+(defproject luchiniatwork/hystrix-event-stream-clj "0.3.0"
   :description "Generate hystrix event streams"
   :url "http://github.com/unbounce/hystrix-event-stream-clj"
   :license {:name "Eclipse Public License"
@@ -13,21 +13,9 @@
                  [cheshire "5.8.0"
                   :exclusions [com.fasterxml.jackson.core/jackson-core]]]
 
-  :profiles {:dev {:plugins [[lein-kibit "0.1.2"]
-                             [jonase/eastwood "0.2.1"]]}}
+  :profiles {:dev {:plugins [[jonase/eastwood "0.2.1"]]}}
 
   :release-tasks [["clean"]
-                  ["kibit"]
-                  ["eastwood"]
-                  ["test"]
-                  ["change" "version"
-                   "leiningen.release/bump-version" "release"]
-                  ["vcs" "commit"]
-                  ["vcs" "tag"]
-                  ["deploy" "clojars"]
-                  ["change" "version"
-                   "leiningen.release/bump-version"]
-                  ["vcs" "commit"]
-                  ["vcs" "push"]]
+                  ["eastwood"]                  ]
 
   :deploy-repositories [["releases" :clojars]])
